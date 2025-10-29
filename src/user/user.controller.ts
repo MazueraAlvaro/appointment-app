@@ -1,17 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ValidateUserDto } from './dto/validate-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -32,7 +20,10 @@ export class UserController {
     @Param('identification') identification: string,
     @Param('dateOfBirth') dateOfBirth: string,
   ) {
-    const user = await this.userService.validateUser(identification, dateOfBirth);
+    const user = await this.userService.validateUser(
+      identification,
+      dateOfBirth,
+    );
     if (!user) {
       throw new NotFoundException('User not found');
     }
