@@ -1,0 +1,16 @@
+meta {
+  name: Validate
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/user/validate/123456/1994-02-11
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
