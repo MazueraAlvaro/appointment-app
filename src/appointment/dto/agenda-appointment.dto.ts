@@ -1,5 +1,5 @@
 export class AgendaAppointmentDto {
-    id: string;
+    appointmentId: string;
     date: string;
     time: string;
     isConfirmed: boolean;

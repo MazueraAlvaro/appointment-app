@@ -7,10 +7,13 @@ import {
   Param,
   Delete,
   Query,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { AssignAppointmentDto } from './dto/assign-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @Controller('appointment')
 export class AppointmentController {
@@ -23,31 +26,32 @@ export class AppointmentController {
   }
 
 
-  @Post()
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.create(createAppointmentDto);
+  @Post('assign')
+  async create(@Body() assignAppointmentDto: AssignAppointmentDto) {
+    const result = await this.appointmentService.assign(assignAppointmentDto);
+    if (result.statusCode === 404) {
+      throw new NotFoundException(result.message);
+    }
+    if (result.statusCode === 400) {
+      throw new BadRequestException(result.message);
+    }
+    return result;
   }
 
-  @Get()
-  findAll() {
-    return this.appointmentService.findAll();
+  @Get('check/:userId')
+  check(@Param('userId') userId: string) {
+    return this.appointmentService.check(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.appointmentService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateAppointmentDto: UpdateAppointmentDto,
-  ) {
-    return this.appointmentService.update(+id, updateAppointmentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.appointmentService.remove(+id);
+  @Post('cancel')
+  async cancel(@Body() cancelAppointmentDto: CancelAppointmentDto) {
+    const result = await this.appointmentService.cancel(cancelAppointmentDto);
+    if (result.statusCode === 404) {
+      throw new NotFoundException(result.message);
+    }
+    if (result.statusCode === 400) {
+      throw new BadRequestException(result.message);
+    }
+    return result;
   }
 }

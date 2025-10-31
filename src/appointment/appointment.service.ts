@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { AssignAppointmentDto } from './dto/assign-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThanOrEqual, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AgendaAppointmentDto } from './dto/agenda-appointment.dto';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -22,6 +23,7 @@ export class AppointmentService {
       .where('physician.specialty = :specialty', { specialty })
       .andWhere('agenda.isAvailable = :isAvailable', { isAvailable: true })
       .andWhere('appointment.date >= :today', { today: new Date().toISOString().split('T')[0] })
+      .andWhere('appointment.user IS NULL')
       .orderBy('appointment.date', 'ASC');
 
     if (timeSlot) {
@@ -38,7 +40,7 @@ export class AppointmentService {
   private handleResult(result: Appointment[]): AgendaAppointmentDto[] {
 
     return result.map(appointment => ({
-      id: appointment.id,
+      appointmentId: appointment.id,
       date: appointment.date,
       time: appointment.time,
       isConfirmed: appointment.isConfirmed,
@@ -50,23 +52,52 @@ export class AppointmentService {
       
   }
 
-  create(createAppointmentDto: CreateAppointmentDto) {
-    return 'This action adds a new appointment';
+  async assign(assignAppointmentDto: AssignAppointmentDto) {
+    const appointment = await this.appointmentRepository.findOne({where: { id: assignAppointmentDto.appointmentId, user: IsNull()}, relations: ['physician']});
+
+    if (!appointment) {
+      return { message: 'Appointment not found or already assigned', statusCode: 404};
+    }
+    
+    const assigned = await this.check(assignAppointmentDto.userId);
+    const assignedSameSpecialty = assigned.find(appt => appt.physicianSpecialty === appointment.physician.specialty);
+    
+    if (assignedSameSpecialty) {
+      return { message: 'User already has an appointment with the same specialty', statusCode: 400};
+    }
+
+    const result = await this.appointmentRepository.update(assignAppointmentDto.appointmentId, {
+      user: { id: assignAppointmentDto.userId },
+      isConfirmed: true,
+    });
+    return { message: 'Appointment assigned successfully', statusCode: 200, result };
   }
 
-  findAll() {
-    return `This action returns all appointment`;
+  async check(userId: string) {
+    const appointments = await this.appointmentRepository.find({
+      where: {
+        user: { id: userId },
+        date: MoreThanOrEqual(new Date().toISOString().split('T')[0]),
+      },
+      relations: ['physician', 'agenda', 'agenda.medicalCenter'],
+    });
+
+    return this.handleResult(appointments);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} appointment`;
-  }
+  async cancel({userId, appointmentId}: CancelAppointmentDto) {
+    const assigned = await this.check(userId);
+    const appointmentToCancel = assigned.find(appt => appt.appointmentId === appointmentId);
 
-  update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    return `This action updates a #${id} appointment`;
-  }
+    if (!appointmentToCancel) {
+      return { message: 'Appointment not found for this user', statusCode: 404};
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} appointment`;
+    const cancelResult = await this.appointmentRepository.update({ id: appointmentId, user: { id: userId } }, {
+      user: null,
+      isConfirmed: false,
+    });
+
+    return { message: 'Appointment cancelled successfully', statusCode: 200, cancelResult };
   }
 }

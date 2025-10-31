@@ -1,0 +1,23 @@
+meta {
+  name: Cancel
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:4000/appointment/cancel
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "appointmentId": "b2523e71-cc2b-41c3-8538-82a5197837ad",
+    "userId": "a04ed417-083c-4cd5-a889-c55699f444e8"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

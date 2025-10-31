@@ -18,7 +18,7 @@ export class Appointment {
   isConfirmed: boolean;
 
   @ManyToOne(() => User, (user) => user.appointments, {nullable: true})
-  user?: User;
+  user: User | null;
 
   @ManyToOne(() => Physician, (physician) => physician.appointments)
   physician: Physician;
