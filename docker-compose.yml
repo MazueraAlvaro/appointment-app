@@ -6,7 +6,7 @@ services:
       context: .
     image: nest-app
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     depends_on:
       - db
     environment:
@@ -15,10 +15,11 @@ services:
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
+      PORT: ${PORT}
 
   db:
     image: postgres:13
-    container_name: ${DATABASE_HOST}
+    container_name: postgres
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}

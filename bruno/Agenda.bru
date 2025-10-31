@@ -1,0 +1,20 @@
+meta {
+  name: Agenda
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:4000/appointment/agenda/MEDG845?timeSlot=AM
+  body: none
+  auth: inherit
+}
+
+params:query {
+  timeSlot: AM
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

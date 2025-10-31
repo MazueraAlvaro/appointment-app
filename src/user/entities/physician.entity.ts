@@ -1,8 +1,9 @@
+import { Agenda } from 'src/appointment/entities/agenda.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class User {
+export class Physician {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -10,17 +11,14 @@ export class User {
   name: string;
 
   @Column({ unique: true })
-  email: string;
+  licenseNumber: string;
 
   @Column()
-  identification: string;
+  specialty: string;
 
-  @Column({ type: 'date' })
-  dateOfBirth: string;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  @OneToMany(() => Appointment, (appointment) => appointment.physician)
   appointments: Appointment[];
+
+  @OneToMany(() => Agenda, (agenda) => agenda.physician)
+  agendas: Agenda[];
 }
